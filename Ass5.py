@@ -87,23 +87,30 @@ def nes(mean, variance, number_of_generations, number_of_samples, number_of_feat
     while(i < number_of_generations):
         samples = np.random.normal(mean, variance, (number_of_samples, number_of_features))
         evaluated_samples = objective_function(samples)
-        for j in range(number_of_samples):
-            log_derivatives_mean[j] = (samples[j] - mean) / variance**2
-            log_derivatives_variance[j] = ((samples[j] - mean)**2 - variance**2) / variance**3
-        log_derivatives_mean_f = log_derivatives_mean * evaluated_samples[..., np.newaxis]
-        log_derivatives_variance_f = log_derivatives_variance * evaluated_samples[..., np.newaxis]
-        j_derivatives_mean = np.sum(log_derivatives_mean_f  / number_of_samples, axis=0)
-        j_derivatives_variance = np.sum(log_derivatives_variance_f  / number_of_samples, axis=0)
+        #Maybe this for is useless
+        # for j in range(number_of_samples):
+            # log_derivatives_mean[j] = (samples[j] - mean) / variance**2
+            # log_derivatives_variance[j] = ((samples[j] - mean)**2 - variance**2) / variance**3
+        log_derivatives_mean = (samples - mean) / variance**2
+        log_derivatives_variance = ((samples - mean)**2 - variance**2) / variance**3
 
-        outer_prod_mean = np.zeros((number_of_features, number_of_features, number_of_samples))
-        for k,sample in enumerate(log_derivatives_mean):
-            outer_prod_mean[:,:,k] = np.outer(sample,sample)
-        F_mean = np.sum(outer_prod_mean, axis=-1) / number_of_samples
+        log_derivatives_mean_f = evaluated_samples[..., np.newaxis] * log_derivatives_mean
+        log_derivatives_variance_f = evaluated_samples[..., np.newaxis] * log_derivatives_variance
 
-        outer_prod_variance = np.zeros((number_of_features, number_of_features, number_of_samples))
-        for k,sample in enumerate(log_derivatives_variance):
-            outer_prod_variance[:,:,k] = np.outer(sample,sample)
-        F_variance = np.sum(outer_prod_variance, axis=-1) / number_of_samples
+        j_derivatives_mean = np.sum(log_derivatives_mean_f, axis=0) / number_of_samples
+        j_derivatives_variance = np.sum(log_derivatives_variance_f, axis=0) / number_of_samples
+
+        #outer_prod_mean = np.zeros((number_of_features, number_of_features, number_of_samples))
+        #for k,sample in enumerate(log_derivatives_mean):
+        #    outer_prod_mean[:,:,k] = np.outer(sample,sample)
+        #F_mean = np.sum(outer_prod_mean, axis=-1) / number_of_samples
+        F_mean = np.matmul(np.transpose(log_derivatives_mean_f), log_derivatives_mean_f) / number_of_samples
+        
+        # outer_prod_variance = np.zeros((number_of_features, number_of_features, number_of_samples))
+        # for k,sample in enumerate(log_derivatives_variance):
+        #     outer_prod_variance[:,:,k] = np.outer(sample,sample)
+        # F_variance = np.sum(outer_prod_variance, axis=-1) / number_of_samples
+        F_variance = np.matmul(np.transpose(log_derivatives_variance_f), log_derivatives_variance_f) / number_of_samples
         
         
         mean = mean - learning_rate * (np.matmul(np.linalg.inv(F_mean),j_derivatives_mean))
@@ -114,14 +121,14 @@ def nes(mean, variance, number_of_generations, number_of_samples, number_of_feat
         best_fitness_samples[i] = samples[idx[0]]
         worst_fitness_samples[i] = samples[idx[-1]]
          #Plot in 2 dimensions
-        coord = np.linspace(-5,5,100)
-        X,Y = np.meshgrid(coord,coord)
-        Z = objective_function(np.dstack([X,Y]))
-        plt.figure(1)
-        plt.clf()
-        plt.contour(X, Y, Z)
-        plt.plot(samples[:, 0], samples[:, 1], 'ko')
-        plt.pause(0.1)
+        # coord = np.linspace(-5,5,100)
+        # X,Y = np.meshgrid(coord,coord)
+        # Z = objective_function(np.dstack([X,Y]))
+        # plt.figure(1)
+        # plt.clf()
+        # plt.contour(X, Y, Z)
+        # plt.plot(samples[:, 0], samples[:, 1], 'ko')
+        # plt.pause(0.1)
         i += 1
     return best_fitness_samples, worst_fitness_samples
 
@@ -201,27 +208,27 @@ y = np.linspace(-5,5,100)
 #g = np.linspace(-5,5,100)
 
 ### cem test 
-number_of_generations = 1000
-number_of_samples = 100
+number_of_generations = 2000
+number_of_samples = 1000
 number_of_features = 2
 elite_set = 20
 objective_function = sphere_test
 number_of_runs = 3
 mean = np.random.uniform(-5,5,number_of_features)
-variance = np.random.uniform(0,5,number_of_features)
-learning_rate = 0.000001
+variance = np.random.uniform(0,1,number_of_features)
+learning_rate = 0.001
 
 #covariance matrix. CHECK: is correct to use normal?
 covariance_matrix = np.diag(np.random.uniform(-5,5,number_of_features))
 #covariance_matrix = np.dot(rnd,np.transpose(rnd))
 
 
-#cem(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function)
+# cem(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function)
 #cem_d(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function, number_of_runs)
-#nes_d(mean, variance, number_of_generations, number_of_samples, number_of_features, objective_function, learning_rate, number_of_runs)
+nes_d(mean, variance, number_of_generations, number_of_samples, number_of_features, objective_function, learning_rate, number_of_runs)
 #cmaes_d(mean, covariance_matrix, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function, number_of_runs)
 #cmaes(mean, covariance_matrix, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function)
-nes(mean, variance, number_of_generations, number_of_samples, number_of_features, objective_function, learning_rate)
+# nes(mean, variance, number_of_generations, number_of_samples, number_of_features, objective_function, learning_rate)
 
 
 plt.show()
