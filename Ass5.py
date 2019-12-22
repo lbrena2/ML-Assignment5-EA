@@ -20,10 +20,6 @@ def visualize_rastrigin(x,y):
 
 #input of n dimension
 def sphere_test(data):
-    #concatenate the input into dataset
-    #dataset = np.empty([len(data), data[0].shape[0]])
-    #for i, coordinate in enumerate(data):
-    #    dataset[i, :] = coordinate
     z = np.sum(data**2, axis = -1)
     return z 
 
@@ -104,31 +100,32 @@ def nes(mean, variance, number_of_generations, number_of_samples, number_of_feat
         #for k,sample in enumerate(log_derivatives_mean):
         #    outer_prod_mean[:,:,k] = np.outer(sample,sample)
         #F_mean = np.sum(outer_prod_mean, axis=-1) / number_of_samples
-        F_mean = np.matmul(np.transpose(log_derivatives_mean_f), log_derivatives_mean_f) / number_of_samples
+        F_mean = np.matmul(np.transpose(log_derivatives_mean), log_derivatives_mean) / number_of_samples
         
         # outer_prod_variance = np.zeros((number_of_features, number_of_features, number_of_samples))
         # for k,sample in enumerate(log_derivatives_variance):
         #     outer_prod_variance[:,:,k] = np.outer(sample,sample)
         # F_variance = np.sum(outer_prod_variance, axis=-1) / number_of_samples
-        F_variance = np.matmul(np.transpose(log_derivatives_variance_f), log_derivatives_variance_f) / number_of_samples
+        F_variance = np.matmul(np.transpose(log_derivatives_variance), log_derivatives_variance) / number_of_samples
         
         
         mean = mean - learning_rate * (np.matmul(np.linalg.inv(F_mean),j_derivatives_mean))
         variance = variance - learning_rate * (np.matmul(np.linalg.inv(F_variance),j_derivatives_variance))
 
         #For plots
-        idx = np.argsort(- objective_function(samples))
+        idx = np.argsort(evaluated_samples)
         best_fitness_samples[i] = samples[idx[0]]
         worst_fitness_samples[i] = samples[idx[-1]]
          #Plot in 2 dimensions
-        # coord = np.linspace(-5,5,100)
-        # X,Y = np.meshgrid(coord,coord)
-        # Z = objective_function(np.dstack([X,Y]))
-        # plt.figure(1)
-        # plt.clf()
-        # plt.contour(X, Y, Z)
-        # plt.plot(samples[:, 0], samples[:, 1], 'ko')
-        # plt.pause(0.1)
+        # if i % 50 == 0:
+        #     coord = np.linspace(-5,5,100)
+        #     X,Y = np.meshgrid(coord,coord)
+        #     Z = objective_function(np.dstack([X,Y]))
+        #     plt.figure(1)
+        #     plt.clf()
+        #     plt.contour(X, Y, Z)
+        #     plt.plot(samples[:, 0], samples[:, 1], 'ko')
+        #     plt.pause(0.1)
         i += 1
     return best_fitness_samples, worst_fitness_samples
 
@@ -208,23 +205,22 @@ y = np.linspace(-5,5,100)
 #g = np.linspace(-5,5,100)
 
 ### cem test 
-number_of_generations = 2000
-number_of_samples = 1000
-number_of_features = 2
-elite_set = 20
+number_of_generations = 500
+number_of_samples = 10000
+number_of_features = 100
+elite_set = 2000
 objective_function = sphere_test
 number_of_runs = 3
 mean = np.random.uniform(-5,5,number_of_features)
-variance = np.random.uniform(0,1,number_of_features)
-learning_rate = 0.001
+variance = np.random.uniform(0,5,number_of_features)
+learning_rate = 0.01
 
 #covariance matrix. CHECK: is correct to use normal?
 covariance_matrix = np.diag(np.random.uniform(-5,5,number_of_features))
-#covariance_matrix = np.dot(rnd,np.transpose(rnd))
 
 
 # cem(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function)
-#cem_d(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function, number_of_runs)
+# cem_d(mean, variance, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function, number_of_runs)
 nes_d(mean, variance, number_of_generations, number_of_samples, number_of_features, objective_function, learning_rate, number_of_runs)
 #cmaes_d(mean, covariance_matrix, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function, number_of_runs)
 #cmaes(mean, covariance_matrix, number_of_generations, number_of_samples, number_of_features, elite_set, objective_function)
